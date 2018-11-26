@@ -4,6 +4,13 @@ Named Entity Recognition (NER)
 Train and use the model
 -----------------------
 
+First you would need to install additional requirements:
+
+::
+
+    python -m deeppavlov install ner_ontonotes
+
+
 Any pre-trained model can be used for inference from both Command Line Interface (CLI) and Python. Before using the
 mode make sure that all needed packages is installed using the command:
 
