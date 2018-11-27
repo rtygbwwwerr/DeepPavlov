@@ -39,7 +39,7 @@ class DirtyCommentsPreprocessor(Component):
         Returns:
             list of preprocessed text samples
         """
-        f = [x.lower() for x in batch]
+        f = [str(x).lower() for x in batch]
         f = [re.sub("<\S*>", " ", x) for x in f]
         f = [re.sub('\s+', ' ', x) for x in f]
 

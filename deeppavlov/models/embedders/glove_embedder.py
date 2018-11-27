@@ -16,6 +16,7 @@ from overrides import overrides
 from typing import Iterator
 
 import numpy as np
+import gensim
 from gensim.models import KeyedVectors
 
 from deeppavlov.core.common.registry import register
@@ -50,7 +51,8 @@ class GloVeEmbedder(Embedder):
         Load dict of embeddings from given file
         """
         log.info(f"[loading GloVe embeddings from `{self.load_path}`]")
-        self.model = KeyedVectors.load_word2vec_format(str(self.load_path))
+        self.model =  gensim.models.Word2Vec.load(str(self.load_path))
+#         self.model = KeyedVectors.load_word2vec_format(str(self.load_path))
         self.dim = self.model.vector_size
 
     @overrides

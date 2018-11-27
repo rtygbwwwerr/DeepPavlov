@@ -79,6 +79,10 @@ class BasicClassificationDatasetReader(DatasetReader):
                     keys = ('sep', 'header', 'names')
                     options = {k: kwargs[k] for k in keys if k in kwargs}
                     df = pd.read_csv(file, **options)
+                if format == 'xlsx':
+                    keys = ('sep', 'header', 'names')
+                    options = {k: kwargs[k] for k in keys if k in kwargs}
+                    df = pd.read_excel(file, **options)
                 elif format == 'json':
                     keys = ('orient', 'lines')
                     options = {k: kwargs[k] for k in keys if k in kwargs}

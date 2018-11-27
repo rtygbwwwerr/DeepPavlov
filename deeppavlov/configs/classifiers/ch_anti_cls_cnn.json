@@ -2,10 +2,12 @@
   "dataset_reader": {
     "class_name": "basic_classification_reader",
     "x": "text",
-    "y": "label",
-    "data_path": "{DOWNLOADS_PATH}/rusentiment/",
-    "train": "rusentiment_random_posts.csv",
-    "test": "rusentiment_test.csv"
+    "y": "class",
+    "data_path": "{DOWNLOADS_PATH}/ch_anti_cls/",
+    "format": "xlsx",
+    "train": "train_anti_data0.xlsx",
+    "valid": "test_anti_data0.xlsx",
+    "test": "test_anti_data0.xlsx"
   },
   "dataset_iterator": {
     "class_name": "basic_classification_iterator",
@@ -34,8 +36,8 @@
         "fit_on": [
           "y"
         ],
-        "save_path": "{MODELS_PATH}/classifiers/rusentiment_v1/classes.dict",
-        "load_path": "{MODELS_PATH}/classifiers/rusentiment_v1/classes.dict",
+        "save_path": "{MODELS_PATH}/classifiers/ch_anti_cls_v1/classes.dict",
+        "load_path": "{MODELS_PATH}/classifiers/ch_anti_cls_v1/classes.dict",
         "in": "y",
         "out": "y_ids"
       },
@@ -52,15 +54,15 @@
         "in": "x_prep",
         "out": "x_tok",
         "id": "my_tokenizer",
-        "class_name": "nltk_tokenizer",
-        "tokenizer": "wordpunct_tokenize"
+        "class_name": "char_tokenizer",
+        "tokenizer": "char_tokenizer"
       },
       {
         "in": "x_tok",
         "out": "x_emb",
         "id": "my_embedder",
-        "class_name": "fasttext",
-        "load_path": "{DOWNLOADS_PATH}/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin"
+        "class_name": "glove",
+        "load_path": "{DOWNLOADS_PATH}/embeddings/anti_char_CBOW_gensim.emb"
       },
       {
         "in": "y_ids",
@@ -79,28 +81,27 @@
           "y_pred_probas"
         ],
         "main": true,
-        "class_name": "keras_classification_model",
-        "save_path": "{MODELS_PATH}/classifiers/rusentiment_v1/model",
-        "load_path": "{MODELS_PATH}/classifiers/rusentiment_v1/model",
+        "class_name": "keras_classification_model_fast",
+        "save_path": "{MODELS_PATH}/classifiers/ch_anti_cls_v1/model",
+        "load_path": "{MODELS_PATH}/classifiers/ch_anti_cls_v1/model",
         "embedding_size": "#my_embedder.dim",
         "n_classes": "#classes_vocab.len",
         "kernel_sizes_cnn": [
-          1,
           2,
           3
         ],
-        "filters_cnn": 256,
+        "filters_cnn": 64,
         "optimizer": "Adam",
         "learning_rate": 0.01,
         "learning_rate_decay": 0.1,
-        "loss": "binary_crossentropy",
-        "text_size": 40,
+        "loss": "categorical_crossentropy",
+        "text_size": 100,
         "last_layer_activation": "softmax",
         "coef_reg_cnn": 1e-3,
         "coef_reg_den": 1e-2,
         "dropout_rate": 0.5,
         "dense_size": 100,
-        "model_name": "cnn_model"
+        "model_name": "cnn_model_simple"
       },
       {
         "in": "y_pred_probas",
@@ -120,7 +121,7 @@
   },
   "train": {
     "epochs": 100,
-    "batch_size": 64,
+    "batch_size": 256,
     "metrics": [
       "sets_accuracy",
       "f1_macro",
@@ -153,11 +154,11 @@
     "download": [
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_random_posts.csv",
-        "subdir": "{DOWNLOADS_PATH}/rusentiment"
+        "subdir": "{DOWNLOADS_PATH}/ch_anti_cls"
       },
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_test.csv",
-        "subdir": "{DOWNLOADS_PATH}/rusentiment"
+        "subdir": "{DOWNLOADS_PATH}/ch_anti_cls"
       },
       {
         "url": "http://files.deeppavlov.ai/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin",

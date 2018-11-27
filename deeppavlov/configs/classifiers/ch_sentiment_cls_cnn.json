@@ -1,14 +1,15 @@
 {
   "dataset_reader": {
-    "class_name": "basic_classification_reader",
+    "name": "basic_classification_reader",
     "x": "text",
-    "y": "label",
-    "data_path": "{DOWNLOADS_PATH}/rusentiment/",
-    "train": "rusentiment_random_posts.csv",
-    "test": "rusentiment_test.csv"
+    "y": "labels",
+    "data_path": "ch_sentiment/",
+    "format": "xlsx",
+    "train": "train.xlsx",
+    "test": "test.xlsx"
   },
   "dataset_iterator": {
-    "class_name": "basic_classification_iterator",
+    "name": "basic_classification_iterator",
     "seed": 42,
     "field_to_split": "train",
     "split_fields": [
@@ -30,12 +31,12 @@
     "pipe": [
       {
         "id": "classes_vocab",
-        "class_name": "simple_vocab",
+        "name": "simple_vocab",
         "fit_on": [
           "y"
         ],
-        "save_path": "{MODELS_PATH}/classifiers/rusentiment_v1/classes.dict",
-        "load_path": "{MODELS_PATH}/classifiers/rusentiment_v1/classes.dict",
+        "save_path": "classifiers/chsentiment_v1/classes.dict",
+        "load_path": "classifiers/chsentiment_v1/classes.dict",
         "in": "y",
         "out": "y_ids"
       },
@@ -46,26 +47,26 @@
         "out": [
           "x_prep"
         ],
-        "class_name": "dirty_comments_preprocessor"
+        "name": "dirty_comments_preprocessor"
       },
       {
         "in": "x_prep",
         "out": "x_tok",
         "id": "my_tokenizer",
-        "class_name": "nltk_tokenizer",
-        "tokenizer": "wordpunct_tokenize"
+        "name": "char_tokenizer",
+        "tokenizer": "char_tokenizer"
       },
       {
         "in": "x_tok",
         "out": "x_emb",
         "id": "my_embedder",
-        "class_name": "fasttext",
-        "load_path": "{DOWNLOADS_PATH}/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin"
+        "name": "glove",
+        "load_path": "embeddings/sgns.weibo.char"
       },
       {
         "in": "y_ids",
         "out": "y_onehot",
-        "class_name": "one_hotter",
+        "name": "one_hotter",
         "depth": "#classes_vocab.len"
       },
       {
@@ -79,9 +80,9 @@
           "y_pred_probas"
         ],
         "main": true,
-        "class_name": "keras_classification_model",
-        "save_path": "{MODELS_PATH}/classifiers/rusentiment_v1/model",
-        "load_path": "{MODELS_PATH}/classifiers/rusentiment_v1/model",
+        "name": "keras_classification_model",
+        "save_path": "classifiers/chsentiment_v1/model",
+        "load_path": "classifiers/chsentiment_v1/model",
         "embedding_size": "#my_embedder.dim",
         "n_classes": "#classes_vocab.len",
         "kernel_sizes_cnn": [
@@ -105,7 +106,7 @@
       {
         "in": "y_pred_probas",
         "out": "y_pred_ids",
-        "class_name": "proba2labels",
+        "name": "proba2labels",
         "max_proba": true
       },
       {
@@ -120,7 +121,7 @@
   },
   "train": {
     "epochs": 100,
-    "batch_size": 64,
+    "batch_size": 256,
     "metrics": [
       "sets_accuracy",
       "f1_macro",
@@ -137,14 +138,9 @@
     "test_best": true
   },
   "metadata": {
-    "variables": {
-      "ROOT_PATH": "../",
-      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
-      "MODELS_PATH": "{ROOT_PATH}/models"
-    },
     "requirements": [
-      "{DEEPPAVLOV_PATH}/requirements/tf.txt",
-      "{DEEPPAVLOV_PATH}/requirements/fasttext.txt"
+      "../dp_requirements/tf.txt",
+      "../dp_requirements/fasttext.txt"
     ],
     "labels": {
       "telegram_utils": "IntentModel",
@@ -153,19 +149,19 @@
     "download": [
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_random_posts.csv",
-        "subdir": "{DOWNLOADS_PATH}/rusentiment"
+        "subdir": "rusentiment"
       },
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_test.csv",
-        "subdir": "{DOWNLOADS_PATH}/rusentiment"
+        "subdir": "rusentiment"
       },
       {
         "url": "http://files.deeppavlov.ai/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin",
-        "subdir": "{DOWNLOADS_PATH}/embeddings"
+        "subdir": "embeddings"
       },
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/classifiers/rusentiment_v1.tar.gz",
-        "subdir": "{MODELS_PATH}/classifiers"
+        "subdir": "classifiers"
       }
     ]
   }

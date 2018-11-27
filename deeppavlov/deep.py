@@ -16,6 +16,10 @@ limitations under the License.
 
 import argparse
 
+import os
+import sys
+sys.path.append('C:\\Users\\Administrator\\git\\DeepPavlov')
+# sys.path.append('/home/liaoyixuan/DeepPavlov')
 from deeppavlov.core.commands.train import train_evaluate_model_from_config
 from deeppavlov.core.commands.infer import interact_model, predict_on_stream
 from deeppavlov.core.common.file import find_config
@@ -33,15 +37,15 @@ log = get_logger(__name__)
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("mode", help="select a mode, train or interact", type=str,
+parser.add_argument("-m", "--mode", default='train', help="select a mode, train or interact", type=str,
                     choices={'train', 'evaluate', 'interact', 'predict', 'interactbot', 'interactmsbot',
                              'riseapi', 'download', 'install', 'crossval'})
-parser.add_argument("config_path", help="path to a pipeline json config", type=str)
 
+parser.add_argument("-c", "--config_path", default='configs/classifiers/ch_anti_cls_cnn.json', help="path to a pipeline json config", type=str)
 parser.add_argument("-e", "--start-epoch-num", dest="start_epoch_num", default=0, help="Start epoch number", type=int)
 parser.add_argument("--recursive", action="store_true", help="Train nested configs")
 
-parser.add_argument("-b", "--batch-size", dest="batch_size", default=1, help="inference batch size", type=int)
+parser.add_argument("-b", "--batch-size", dest="batch_size", default=256, help="inference batch size", type=int)
 parser.add_argument("-f", "--input-file", dest="file_path", default=None, help="Path to the input file", type=str)
 parser.add_argument("-d", "--download", action="store_true", help="download model components")
 
@@ -57,7 +61,7 @@ parser.add_argument("--stateful", action="store_true", help="interact with a sta
 parser.add_argument("--https", action="store_true", help="run model in https mode")
 parser.add_argument("--key", default=None, help="ssl key", type=str)
 parser.add_argument("--cert", default=None, help="ssl certificate", type=str)
-
+parser.add_argument('-g', '--gpu_id', default="0", help="GPU device form 0-7")
 parser.add_argument("--api-mode", help="rest api mode: 'basic' with batches or 'alice' for  Yandex.Dialogs format",
                     type=str, default='basic', choices={'basic', 'alice'})
 
@@ -65,7 +69,10 @@ parser.add_argument("--api-mode", help="rest api mode: 'basic' with batches or '
 def main():
     args = parser.parse_args()
     pipeline_config_path = find_config(args.config_path)
-
+    
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_id
+    log.info("use gpu id:" + args.gpu_id)
+    
     if args.download or args.mode == 'download':
         deep_download(pipeline_config_path)
 
