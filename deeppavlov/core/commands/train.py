@@ -104,6 +104,17 @@ def fit_chainer(config: dict, iterator: Union[DataLearningIterator, DataFittingI
             component: Estimator
             component.fit_batches(iterator, config['train']['batch_size'])
             component.save()
+            
+        if 'fit_on_batch_preprocess' in component_config:
+            component: Estimator
+            
+            targets = component_config['fit_on_batch_preprocess']
+            if isinstance(targets, str):
+                targets = [targets]
+            data_train = chainer.compute(*iterator.get_instances('train'), targets=targets)
+            data_valid = chainer.compute(*iterator.get_instances('valid'), targets=targets)
+            component.fit_batches(data_train, data_valid, config['train']['batch_size'], config['train']['epochs'])
+            component.save()
 
         if 'in' in component_config:
             c_in = component_config['in']
@@ -198,7 +209,7 @@ def train_evaluate_model_from_config(config: [str, Path, dict], iterator=None, *
 
     if to_train:
         model = fit_chainer(config, iterator)
-
+        
         if callable(getattr(model, 'train_on_batch', None)):
             _train_batches(model, iterator, train_config, metrics_functions, start_epoch_num=start_epoch_num)
         elif callable(getattr(model, 'fit_batches', None)):
