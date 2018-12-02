@@ -1,25 +1,18 @@
 {
   "dataset_reader": {
-    "name": "basic_classification_reader",
+    "class_name": "basic_classification_reader",
     "x": "text",
     "y": "labels",
-    "data_path": "ch_sentiment/",
+    "data_path": "{DOWNLOADS_PATH}/ch_sentiment/",
+    "class_sep": ":",
     "format": "xlsx",
-    "train": "train.xlsx",
-    "test": "test.xlsx"
+    "train": "train2.xlsx",
+    "test": "test2.xlsx",
+    "valid": "test2.xlsx"
   },
   "dataset_iterator": {
-    "name": "basic_classification_iterator",
-    "seed": 42,
-    "field_to_split": "train",
-    "split_fields": [
-      "train",
-      "valid"
-    ],
-    "split_proportions": [
-      0.9,
-      0.1
-    ]
+    "class_name": "basic_classification_iterator",
+    "seed": 42
   },
   "chainer": {
     "in": [
@@ -31,12 +24,12 @@
     "pipe": [
       {
         "id": "classes_vocab",
-        "name": "simple_vocab",
+        "class_name": "simple_vocab",
         "fit_on": [
           "y"
         ],
-        "save_path": "classifiers/chsentiment_v1/classes.dict",
-        "load_path": "classifiers/chsentiment_v1/classes.dict",
+        "save_path": "{MODELS_PATH}/classifiers/ch_sentiment_v1/classes.dict",
+        "load_path": "{MODELS_PATH}/classifiers/ch_sentiment_v1/classes.dict",
         "in": "y",
         "out": "y_ids"
       },
@@ -47,46 +40,47 @@
         "out": [
           "x_prep"
         ],
-        "name": "dirty_comments_preprocessor"
+        "class_name": "dirty_comments_preprocessor"
       },
       {
         "in": "x_prep",
         "out": "x_tok",
         "id": "my_tokenizer",
-        "name": "char_tokenizer",
+        "class_name": "char_tokenizer",
         "tokenizer": "char_tokenizer"
       },
       {
         "in": "x_tok",
         "out": "x_emb",
         "id": "my_embedder",
-        "name": "glove",
-        "load_path": "embeddings/sgns.weibo.char"
+        "class_name": "glove",
+        "load_path": "{DOWNLOADS_PATH}/embeddings/sent_char_CBOW_gensim.emb"
       },
       {
         "in": "y_ids",
         "out": "y_onehot",
-        "name": "one_hotter",
+        "class_name": "one_hotter",
+        "multi_label": true,
         "depth": "#classes_vocab.len"
       },
       {
         "in": [
           "x_emb"
         ],
-        "in_y": [
+        "fit_on_batch_preprocess": [
+          "x_emb",
           "y_onehot"
         ],
         "out": [
           "y_pred_probas"
         ],
         "main": true,
-        "name": "keras_classification_model",
-        "save_path": "classifiers/chsentiment_v1/model",
-        "load_path": "classifiers/chsentiment_v1/model",
+        "class_name": "keras_classifier_model",
+        "save_path": "{MODELS_PATH}/classifiers/ch_sentiment_v1/model",
+        "load_path": "{MODELS_PATH}/classifiers/ch_sentiment_v1/model",
         "embedding_size": "#my_embedder.dim",
         "n_classes": "#classes_vocab.len",
         "kernel_sizes_cnn": [
-          1,
           2,
           3
         ],
@@ -95,7 +89,7 @@
         "learning_rate": 0.01,
         "learning_rate_decay": 0.1,
         "loss": "binary_crossentropy",
-        "text_size": 40,
+        "text_size": 80,
         "last_layer_activation": "softmax",
         "coef_reg_cnn": 1e-3,
         "coef_reg_den": 1e-2,
@@ -106,7 +100,7 @@
       {
         "in": "y_pred_probas",
         "out": "y_pred_ids",
-        "name": "proba2labels",
+        "class_name": "proba2labels",
         "max_proba": true
       },
       {
@@ -120,14 +114,29 @@
     ]
   },
   "train": {
-    "epochs": 100,
-    "batch_size": 256,
+    "epochs": 3,
+    "batch_size": 3,
     "metrics": [
-      "sets_accuracy",
-      "f1_macro",
+      {
+        "name": "sets_accuracy",
+        "inputs": [
+          "y",
+          "y_pred_labels"
+        ]
+      },
+      {
+        "name": "f1_macro",
+        "inputs": [
+          "y_onehot",
+          "y_pred_ids"
+        ]
+      },
       {
         "name": "roc_auc",
-        "inputs": ["y_onehot", "y_pred_probas"]
+        "inputs": [
+          "y_onehot",
+          "y_pred_probas"
+        ]
       }
     ],
     "validation_patience": 5,
@@ -138,9 +147,14 @@
     "test_best": true
   },
   "metadata": {
+    "variables": {
+      "ROOT_PATH": "../",
+      "DOWNLOADS_PATH": "{ROOT_PATH}/downloads",
+      "MODELS_PATH": "{ROOT_PATH}/models"
+    },
     "requirements": [
-      "../dp_requirements/tf.txt",
-      "../dp_requirements/fasttext.txt"
+      "{DEEPPAVLOV_PATH}/requirements/tf.txt",
+      "{DEEPPAVLOV_PATH}/requirements/fasttext.txt"
     ],
     "labels": {
       "telegram_utils": "IntentModel",
@@ -149,19 +163,19 @@
     "download": [
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_random_posts.csv",
-        "subdir": "rusentiment"
+        "subdir": "{DOWNLOADS_PATH}/ch_anti_cls"
       },
       {
         "url": "https://github.com/text-machine-lab/rusentiment/raw/master/Dataset/rusentiment_test.csv",
-        "subdir": "rusentiment"
+        "subdir": "{DOWNLOADS_PATH}/ch_anti_cls"
       },
       {
         "url": "http://files.deeppavlov.ai/embeddings/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize/ft_native_300_ru_wiki_lenta_nltk_wordpunct_tokenize.bin",
-        "subdir": "embeddings"
+        "subdir": "{DOWNLOADS_PATH}/embeddings"
       },
       {
         "url": "http://files.deeppavlov.ai/deeppavlov_data/classifiers/rusentiment_v1.tar.gz",
-        "subdir": "classifiers"
+        "subdir": "{MODELS_PATH}/classifiers"
       }
     ]
   }
